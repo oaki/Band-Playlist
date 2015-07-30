@@ -1,0 +1,38 @@
+{
+  "name": "Band Playlist",
+  "version": "0.0.1",
+  "authors": [
+    "Pavol Bincik"
+  ],
+  "description": "",
+  "main": "index.html",
+  "keywords": [
+    "Band Playlist",
+    "angularjs",
+    "grunt",
+    "bower",
+    "npm",
+    "javascript"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.4.3",
+    "angular-route": "1.4.3",
+    "angularfire": "1.1.2",
+    "bootstrap": "~3.3.0",
+    "modernizr": "~2.8.3",
+    "jquery": "~2.1.1",
+    "ng-file-upload": "~ 5.0.9",
+    "angular-translate": "latest",
+    "angular-translate-loader-static-files": "latest",
+    "components-font-awesome":"4.4"
+  }
+}

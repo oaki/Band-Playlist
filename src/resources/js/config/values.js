@@ -1,0 +1,1 @@
+app.value('fbURL', 'https://scorching-inferno-4935.firebaseio.com/');

@@ -1,0 +1,72 @@
+<div class="row">
+
+    <div class="{{showRound ? 'col-md-6' : 'col-md-12'}}">
+        <h2>{{'Band Playlist'|translate}}</h2>
+
+        <table class="table" id="songsList">
+            <thead>
+            <th>{{'Song name'|translate}}</th>
+            <th>{{'Artist'|translate}}</th>
+            <th></th>
+            </thead>
+            <tbody>
+            <tr ng-repeat="song in filteredsongs" ng-drag="true" ng-drag-data="song" data-allow-transform="true">
+                <td>{{song.name}}</td>
+                <td>{{song.artist}}</td>
+                <td>
+                    <button ng-hide="showRound" ng-click="editSong(song.$id)" class="btn btn-sm btn-default">
+                        <span class="glyphicon glyphicon-pencil"></span>
+                    </button>
+                    <button ng-hide="showRound" ng-click="deleteSong(song.$id)" class="btn btn-sm btn-danger"><span
+                            class="glyphicon glyphicon-remove"></span>
+                    </button>
+                    <button ng-show="showRound" class="btn btn-sm btn-default">
+                        <span class="glyphicon glyphicon-move"></span>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div ng-show="showRound" class="col-md-6">
+        <h2>{{'Round'|translate}}</h2>
+
+        <div>
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li ng:repeat="round in rounds" role="presentation" class="{{activeRound==round?'active':''}}"><a href="#round{{round}}" aria-controls="round{{round}}" role="tab" data-toggle="tab">{{round}}</a></li>
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div ng:repeat="round in rounds" role="tabpanel" class="tab-pane {{activeRound==round?'active':''}}" id="round{{round}}">
+                    <div class="round round{{round}}" ng-drop="true" ng-drop-success="onDropComplete($data,$event,round)">
+                        <span class="title">Drop area #{{round}}</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                        <th>{{'Position'|translate}}</th>
+                        <th>{{'Song name'|translate}}</th>
+                        <th></th>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="song in roundsongs|filter: {round:round}">
+                            <td>{{song.position}}</td>
+                            <td>{{song.name}}</td>
+                            <td>
+                                <button ng-click="deleteSongFromPlaylist(song.$id)" class="btn btn-sm btn-default">
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+</div>

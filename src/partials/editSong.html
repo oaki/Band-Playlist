@@ -1,0 +1,28 @@
+<h1>{{'Edit song'|translate}}</h1>
+<form>
+
+    <div class="form-group">
+        <label for="name">{{'Name'|translate}}</label>
+        <input id="name" ng-model="song.name" type="text" class="form-control">
+    </div>
+    <div class="form-group">
+        <label for="artist">{{'Artist'|translate}}</label>
+        <input id="artist" ng-model="song.artist" type="text" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label for="lyrics">{{'Text'|translate}} {{size}}</label>
+
+        <wysiwyg textarea-id="lyrics" textarea-class="form-control lyrics"
+                 textarea-height="800px" textarea-name="textareaQuestion"
+                 textarea-required ng-model="song.lyrics"
+                 enable-bootstrap-title="true"
+                 textarea-menu="menu"
+                ></wysiwyg>
+    </div>
+
+    <button type="submit" ng-click="saveSong()" class="btn btn-success">
+        <span class="glyphicon glyphicon-plus"></span>
+        {{'Edit'|translate}}
+    </button>
+</form>

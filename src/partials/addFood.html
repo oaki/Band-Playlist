@@ -1,0 +1,32 @@
+<h1>{{'Add food'|translate}}</h1>
+<form>
+    <div class="form-group">
+        <div class="dropdown">
+            <a class="dropdown-toggle my-toggle-select" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="">
+                <div class="input-append">
+                    {{'Date'|translate}}: {{ datetime | date:'dd.MM.yyyy h:mm' }}
+                </div>
+            </a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <datetimepicker data-ng-model="datetime" data-datetimepicker-config="{ dropdownSelector: '.my-toggle-select', startView:'minute' }"></datetimepicker>
+            </ul>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="nameOfFood">{{'Name of food'|translate}}</label>
+        <input ng-model="name" id="nameOfFood" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label for="rangeWeight">{{'Weight'|translate}} {{ weight }} g </label>
+        <input ng-model="weight" type="range" min="1" max="500" class="bar" value="40" id="rangeWeight">
+    </div>
+
+    <div class="form-group">
+        <label for="rangeDufalact">{{'Dufalact'|translate}} {{ dufalact }} ml</label>
+        <input ng-model="dufalact" type="range" min="1" max="10" class="bar" id="rangeDufalact" value="5">
+    </div>
+
+    <button type="submit" ng-click="insertFood()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> {{'Add'|translate}}</button>
+</form>

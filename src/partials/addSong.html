@@ -1,27 +1,24 @@
+<button type="submit" ng-click="addSong()" class="btn btn-success pull-right">
+    <span class="glyphicon glyphicon-plus"></span>
+    {{'Add'|translate}}
+</button>
 <h1>{{'Add song'|translate}}</h1>
-<form>
 
-    <div class="form-group">
-        <label for="name">{{'Name'|translate}}</label>
-        <input id="name" ng-model="name" type="text" class="form-control">
-    </div>
-    <div class="form-group">
-        <label for="artist">{{'Artist'|translate}}</label>
-        <input id="artist" ng-model="artist" type="text" class="form-control">
-    </div>
+<div class="form-group">
+    <label for="name">{{'Name'|translate}}</label>
+    <input id="name" ng-model="name" type="text" class="form-control" required>
+</div>
+<div class="form-group">
+    <label for="artist">{{'Artist'|translate}}</label>
+    <input id="artist" ng-model="artist" type="text" class="form-control">
+</div>
 
-    <div class="form-group">
-        <label for="lyrics">{{'Text'|translate}} {{size}}</label>
+<div class="form-group">
+    <label for="lyrics">{{'Text'|translate}} {{size}}</label>
 
-        <wysiwyg textarea-id="lyrics" textarea-class="form-control"
-                 textarea-height="800px" textarea-name="textareaLyircs"
-                 textarea-required ng-model="lyrics" enable-bootstrap-title="true"
-                 textarea-menu="menu"
-                ></wysiwyg>
-    </div>
-
-    <button type="submit" ng-click="addSong()" class="btn btn-success">
-        <span class="glyphicon glyphicon-plus"></span>
-        {{'Add'|translate}}
-    </button>
-</form>
+    <wysiwyg textarea-id="lyrics" textarea-class="form-control"
+             textarea-height="800px" textarea-name="textareaLyircs"
+             textarea-required ng-model="lyrics" enable-bootstrap-title="true"
+             textarea-menu="menu"
+            ></wysiwyg>
+</div>

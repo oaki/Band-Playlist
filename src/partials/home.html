@@ -3,7 +3,7 @@
     <div class="{{showRound ? 'col-md-6' : 'col-md-12'}}">
         <h2>{{'Band Playlist'|translate}}</h2>
 
-        <table class="table" id="songsList">
+        <table class="table table-striped table-hover table-condensed" id="songsList">
             <thead>
             <th>{{'Song name'|translate}}</th>
             <th>{{'Artist'|translate}}</th>
@@ -13,7 +13,7 @@
             <tr ng-repeat="song in filteredsongs" ng-drag="true" ng-drag-data="song" data-allow-transform="true">
                 <td>{{song.name}}</td>
                 <td>{{song.artist}}</td>
-                <td>
+                <td class="text-right">
                     <button ng-hide="showRound" ng-click="editSong(song.$id)" class="btn btn-sm btn-default">
                         <span class="glyphicon glyphicon-pencil"></span>
                     </button>
@@ -44,7 +44,7 @@
                     <div class="round round{{round}}" ng-drop="true" ng-drop-success="onDropComplete($data,$event,round)">
                         <span class="title">Drop area #{{round}}</span>
                     </div>
-                    <table class="table">
+                    <table class="table table-striped table-hover table-condensed">
                         <thead>
                         <th>{{'Position'|translate}}</th>
                         <th>{{'Song name'|translate}}</th>
@@ -54,7 +54,7 @@
                         <tr ng-repeat="song in roundsongs|filter: {round:round}">
                             <td>{{song.position}}</td>
                             <td>{{song.name}}</td>
-                            <td>
+                            <td class="text-right">
                                 <button ng-click="deleteSongFromPlaylist(song.$id)" class="btn btn-sm btn-default">
                                     <span class="glyphicon glyphicon-remove"></span>
                                 </button>

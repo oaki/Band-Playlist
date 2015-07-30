@@ -1,9 +1,14 @@
-<h1>{{'Edit song'|translate}}</h1>
 <form>
+    <button type="submit" ng-click="saveSong()" class="btn btn-success pull-right">
+        <span class="glyphicon glyphicon-plus"></span>
+        {{'Edit'|translate}}
+    </button>
+    <h1>{{'Edit song'|translate}}</h1>
+
 
     <div class="form-group">
         <label for="name">{{'Name'|translate}}</label>
-        <input id="name" ng-model="song.name" type="text" class="form-control">
+        <input id="name" ng-model="song.name" type="text" class="form-control" required>
     </div>
     <div class="form-group">
         <label for="artist">{{'Artist'|translate}}</label>
@@ -21,8 +26,5 @@
                 ></wysiwyg>
     </div>
 
-    <button type="submit" ng-click="saveSong()" class="btn btn-success">
-        <span class="glyphicon glyphicon-plus"></span>
-        {{'Edit'|translate}}
-    </button>
+
 </form>

@@ -1,11 +1,18 @@
+<div class="btn-group pull-right" role="group">
+<button type="submit" ng-click="prevSong()" class="btn btn-default ">
+    <span class="glyphicon glyphicon-backward"></span>
+    {{'Previous'|translate}}
+</button>
+
 <button type="submit" ng-click="nextSong()" class="btn btn-success">
     <span class="glyphicon glyphicon-forward"></span>
     {{'Next'|translate}}
 </button>
-<h1>{{name}}
-    <small>{{artist}}</small>
+    </div>
+
+<p>{{'Round'|translate}}: {{config.round}}, Song #: {{config.playlistIndex+1}}</p>
+<h1>{{song.name}}
+    <small>{{song.artist}}</small>
 </h1>
 
-<div class="lyrics">
-    {{lyrics}}
-</div>
+<div class="lyrics" ng-bind-html="song.lyrics"></div>

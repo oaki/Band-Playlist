@@ -46,6 +46,7 @@ module.exports = function (grunt) {
                     'bower_components/ngDraggable/ngDraggable.js',
                     'bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
                     'bower_components/angular-wysiwyg/dist/angular-wysiwyg.js',
+                    'bower_components/bootstrap-autohidingnavbar/dist/jquery.bootstrap-autohidingnavbar.js',
 
 
                     'bower_components/ng-file-upload/ng-file-upload-all.js'

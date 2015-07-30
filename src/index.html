@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ng-app="BandPlaylist">
 <head>
     <title>{{'Band Playlist'|translate}}</title>
     <meta charset="utf-8">
@@ -26,24 +26,29 @@
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 </head>
-<body data-ng-app="BandPlaylist">
+<body >
 
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
             <a class="navbar-brand" href="#/">{{'Band Playlist'|translate}}</a>
+            <ul class="nav navbar-nav">
+                <li class="pull-left"><a class="addSong" href="#/addSong"><span class="glyphicon glyphicon-plus"></span> <span class="hidden-xs">{{'Add song'|translate}}</span></a></li>
+                <li class="pull-left"><a class="editRound" href="#/round1"><span class="glyphicon glyphicon-refresh"></span> <span class="hidden-xs">{{'Round'|translate}}</span></a></li>
+                <li class="pull-left"><a class="play" href="#/play"><span class="glyphicon glyphicon-play"></span> <span class="hidden-xs">{{'Play'|translate}}</span></a></li>
+            </ul>
         </div>
-        <ul class="nav navbar-nav">
-            <li><a class="addSong" href="#/addSong"><span class="glyphicon glyphicon-plus"></span> {{'Add song'|translate}}</a></li>
-            <li><a class="editRound" href="#/round1"><span class="glyphicon glyphicon-refresh"></span> {{'Round'|translate}}</a></li>
-            <li><a class="play" href="#/play"><span class="glyphicon glyphicon-play"></span> {{'Play'|translate}}</a></li>
-        </ul>
+
     </div>
 </nav>
 
 <div class="container">
     <div data-ng-view></div>
 </div><!-- /.container -->
-
+<script>
+    $(".navbar-fixed-top").autoHidingNavbar({
+        'showOnBottom':false,
+    });
+</script>
 </body>
 </html>

@@ -1,52 +1,68 @@
 /* use strict */
 app.controller('PlayCtrl', [
     '$scope',
+    '$location',
+    'Song',
     '$firebaseArray',
     '$firebaseObject',
     '$location',
     '$routeParams',
     'fbURL',
-    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL) {
+    '$sce',
+    function ($scope, $location, Song, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, $sce) {
+
 
         var configRef = new Firebase(fbURL + 'config/');
         $scope.config = $firebaseObject(configRef);
 
-        $scope.config.$loaded().then(function () {
-            console.log($scope.config);
-            if (typeof $scope.config.round == 'undefined') {
-                $scope.config.round = 1;
-            }
+        var playlistRef = new Firebase(fbURL + 'playlist/');
 
-            if (typeof $scope.config.song == 'undefined') {
-                $scope.config.song = 1;
-            }
+        $scope.config.$loaded().then(function () {
+            if (typeof $scope.config.round == 'undefined')
+                $scope.config.round = 1;
+
+            if (typeof $scope.config.playlistIndex == 'undefined')
+                $scope.config.playlistIndex = 0;
 
             $scope.config.$save();
+
+            var ref = playlistRef.orderByChild("round")
+                .equalTo($scope.config.round);
+
+            var t = $firebaseArray(ref);
+
+            t.$loaded().then(function (data) {
+                if(typeof data[$scope.config.playlistIndex] == 'undefined'){
+                    $scope.config.playlistIndex = 0;
+                }
+
+                var loadSong = function(){
+                    Song(data[$scope.config.playlistIndex].songId).$loaded().then(function(data){
+                        $scope.song = data;
+                        $scope.song.lyrics = $sce.trustAsHtml($scope.song.lyrics);
+                    });
+                };
+
+
+                $scope.nextSong= function(){
+                    if(typeof data[$scope.config.playlistIndex+1] != 'undefined'){
+                        $scope.config.playlistIndex++;
+                        $scope.config.$save();
+                        loadSong();
+                    }
+                };
+
+                $scope.prevSong= function(){
+                    var tmp = $scope.config.playlistIndex-1;
+                    if(tmp>=0 && typeof data[tmp] != 'undefined'){
+                        $scope.config.playlistIndex--;
+                        $scope.config.$save();
+                        loadSong();
+                    }
+                }
+            });
         });
-        var playlistRef = new Firebase(fbURL + 'playlist/');
-        // download the data from a Firebase reference into a (pseudo read-only) array
-        // all server changes are applied in realtime
 
 
-        $scope.song = $firebaseObject(playlistRef);
 
-        $scope.menu = [
-            ['bold', 'italic', 'underline'],
-            ['format-block'],
-            ['font-size'],
-            ['remove-format'],
-            ['ordered-list', 'unordered-list', 'outdent', 'indent'],
-            ['left-justify', 'center-justify', 'right-justify'],
-            ['link', 'image'],
-            ['css-class']
-        ];
-
-        $scope.saveSong = function () {
-            $scope.song.$save()
-                .then(function () {
-                    $location.path('/');
-                }).catch(function (error) {
-                    alert('Error!');
-                });
-        }
     }]);

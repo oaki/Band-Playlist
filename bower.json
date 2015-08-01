@@ -34,6 +34,7 @@
     "angular-translate": "latest",
     "angular-translate-loader-static-files": "latest",
     "components-font-awesome":"4.4",
-    "bootstrap-autohidingnavbar":"1.0.1"
+    "bootstrap-autohidingnavbar":"1.0.1",
+    "ng-sortable": "latest"
   }
 }

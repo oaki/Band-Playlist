@@ -10,7 +10,7 @@
             <th></th>
             </thead>
             <tbody>
-            <tr ng-repeat="song in filteredsongs" ng-drag="true" ng-drag-data="song" data-allow-transform="true">
+            <tr ng-repeat="song in filteredsongs" >
                 <td>{{song.name}}</td>
                 <td>{{song.artist}}</td>
                 <td class="text-right">
@@ -20,8 +20,8 @@
                     <button ng-hide="showRound" ng-click="deleteSong(song.$id)" class="btn btn-sm btn-danger"><span
                             class="glyphicon glyphicon-remove"></span>
                     </button>
-                    <button ng-show="showRound" class="btn btn-sm btn-default">
-                        <span class="glyphicon glyphicon-move"></span>
+                    <button ng-click="addToPlaylist(song)" ng-show="showRound" class="btn btn-sm btn-success">
+                        <span class="glyphicon glyphicon-plus"></span>
                     </button>
                 </td>
             </tr>
@@ -35,27 +35,30 @@
         <div>
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
-                <li ng:repeat="round in rounds" role="presentation" class="{{activeRound==round?'active':''}}"><a href="#round{{round}}" aria-controls="round{{round}}" role="tab" data-toggle="tab">{{round}}</a></li>
+                <li ng-repeat="round in rounds" role="presentation" class="{{activeRound==round?'active':''}}">
+                    <a href="#round{{round}}" aria-controls="round{{round}}" role="tab" data-toggle="tab">{{round}}</a>
+                </li>
             </ul>
 
             <!-- Tab panes -->
             <div class="tab-content">
-                <div ng:repeat="round in rounds" role="tabpanel" class="tab-pane {{activeRound==round?'active':''}}" id="round{{round}}">
-                    <div class="round round{{round}}" ng-drop="true" ng-drop-success="onDropComplete($data,$event,round)">
-                        <span class="title">Drop area #{{round}}</span>
-                    </div>
+                <div ng-repeat="round in rounds" role="tabpanel" class="tab-pane {{activeRound==round?'active':''}}" id="round{{round}}">
                     <table class="table table-striped table-hover table-condensed">
                         <thead>
                         <th>{{'Position'|translate}}</th>
                         <th>{{'Song name'|translate}}</th>
                         <th></th>
                         </thead>
-                        <tbody>
-                        <tr ng-repeat="song in roundsongs|filter: {round:round}">
+                        <tbody as-sortable="sortableOptions" ng-model="roundsongs">
+                        <tr ng-repeat="(key,song) in roundsongs" as-sortable-item class="as-sortable-item">
                             <td>{{song.position}}</td>
                             <td>{{song.name}}</td>
                             <td class="text-right">
-                                <button ng-click="deleteSongFromPlaylist(song.$id)" class="btn btn-sm btn-default">
+
+                                <button as-sortable-item-handle class="btn btn-sm btn-default as-sortable-item-handle">
+                                    <span class="glyphicon glyphicon-move"></span>
+                                </button>
+                                <button ng-click="deleteSongFromPlaylist(key)" class="btn btn-sm btn-danger">
                                     <span class="glyphicon glyphicon-remove"></span>
                                 </button>
                             </td>

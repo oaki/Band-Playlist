@@ -8,5 +8,6 @@ var app = angular.module('BandPlaylist',
         'wysiwyg.module','colorpicker.module',
         'ngRoute',
         'ngFileUpload',
-        'pascalprecht.translate'
+        'pascalprecht.translate',
+        'as.sortable'
     ]);

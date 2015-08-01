@@ -37,6 +37,7 @@ module.exports = function (grunt) {
                     'bower_components/angular/angular.min.js',
 
                     'bower_components/firebase/firebase-debug.js',
+                    'bower_components/firebase-util/dist/firebase-util.min.js',
                     'bower_components/angularfire/dist/angularfire.min.js',
                     'bower_components/bootstrap/dist/js/bootstrap.js',
                     'bower_components/angular-route/angular-route.min.js',
@@ -47,6 +48,7 @@ module.exports = function (grunt) {
                     'bower_components/angular-bootstrap-colorpicker/js/bootstrap-colorpicker-module.js',
                     'bower_components/angular-wysiwyg/dist/angular-wysiwyg.js',
                     'bower_components/bootstrap-autohidingnavbar/dist/jquery.bootstrap-autohidingnavbar.js',
+                    'bower_components/ng-sortable/dist/ng-sortable.js',
 
 
                     'bower_components/ng-file-upload/ng-file-upload-all.js'

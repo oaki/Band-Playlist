@@ -8,7 +8,8 @@ var app = angular.module('BandPlaylist',
         'wysiwyg.module','colorpicker.module',
         'ngRoute',
         'ngFileUpload',
-        'pascalprecht.translate'
+        'pascalprecht.translate',
+        'as.sortable'
     ]);
 
 app.config(['$translateProvider', function ($translateProvider) {
@@ -110,53 +111,26 @@ app.controller('MainCtrl', [
     '$routeParams',
     'fbURL',
     'Song',
+    '$filter',
+    'playlistService',
 
-    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, Song) {
+    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, Song, $filter, playlistService) {
         var songsRef = new Firebase(fbURL + 'songs/');
         var roundRef = new Firebase(fbURL + 'playlist/');
 
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
         $scope.showRound = false;
 
-        var loadSongName = function () {
-            angular.forEach($scope.roundsongs, function (value, index) {
-                Song(value.songId).$loaded().then(function (data) {
-                    $scope.roundsongs[index].name = data.name;
-                });
-            })
-        };
-
-        repairPossition = function (round) {
-            var counter = 0;
-            angular.forEach($scope.roundsongs, function (value, index) {
-                if (value.round == round) {
-                    $scope.roundsongs[index].position = ++counter;
-                    $scope.roundsongs.$save(index);
-                }
-
-            });
-        };
-
-        if (typeof $routeParams.round !== 'undefined') {
-            $scope.showRound = true;
-            $scope.activeRound = $routeParams.round;
-
-            var roundQuery = roundRef.orderByChild("position");
-            $scope.roundsongs = $firebaseArray(roundQuery);
-
-            loadSongName();
-        }
-
         $scope.songs = $firebaseArray(songsRef);
 
-        $scope.onDropComplete = function (data, evt, round) {
-            $scope.roundsongs.$add({
-                songId: data.$id,
-                position: 9999,
-                round: round
-            }).then(function () {
-                repairPossition($scope.activeRound);
-            });
+        $scope.addToPlaylist = function (data) {
+            playlistService.addSong(data,$scope.activeRound);
+            $scope.loadPlaylist();
+        };
+
+        $scope.repairPossition = function (round) {
+            playlistService.repairPossition(round);
+            $scope.loadPlaylist();
         };
 
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
@@ -166,16 +140,14 @@ app.controller('MainCtrl', [
             $scope.showRound = true;
             $scope.activeRound = $routeParams.round;
 
-            var roundQuery = roundRef.orderByChild("position");
-            $scope.roundsongs = $firebaseArray(roundQuery);
+            $scope.loadPlaylist = function(){
+                playlistService.getSongsByRound($scope.activeRound).then(function(list){
+                    $scope.roundsongs = list;
+                });
+            };
 
-            loadSongName();
-
-            $scope.roundsongs.$watch(function (event) {
-                loadSongName();
-            });
+            $scope.loadPlaylist();
         }
-
 
 
         var query = songsRef.orderByChild("name").limitToLast(500);
@@ -197,21 +169,26 @@ app.controller('MainCtrl', [
 
         $scope.deleteSongFromPlaylist = function (id) {
             if (confirm('Are You sure to Delete?')) {
-                var ref = new Firebase(fbURL + '/playlist/' + id);
-                $firebaseObject(ref).$remove().then(function (ref) {
-                    repairPossition($scope.activeRound);
-                }, function (error) {
-                    console.log("Error:", error);
+                var ref = new Firebase(fbURL + '/playlist/').child($scope.activeRound).child(id);
+                ref.remove(function (error) {
+                    $scope.repairPossition($scope.activeRound);
                 });
             }
-        }
+        };
+
+        $scope.sortableOptions = {
+            containment: '#sortable-container',
+            orderChanged: function (event) {
+                console.log(event);
+                $scope.repairPossition($scope.activeRound)
+            },
+        };
 
     }]);
 
 /* use strict */
 app.controller('PlayCtrl', [
     '$scope',
-    '$location',
     'Song',
     '$firebaseArray',
     '$firebaseObject',
@@ -219,61 +196,40 @@ app.controller('PlayCtrl', [
     '$routeParams',
     'fbURL',
     '$sce',
-    function ($scope, $location, Song, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, $sce) {
+    'playlistService',
+    'playService',
+    function ($scope, Song, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, $sce, playlistService, playService) {
 
 
         var configRef = new Firebase(fbURL + 'config/');
         $scope.config = $firebaseObject(configRef);
 
-        var playlistRef = new Firebase(fbURL + 'playlist/');
-
-        $scope.config.$loaded().then(function () {
-            if (typeof $scope.config.round == 'undefined')
-                $scope.config.round = 1;
-
-            if (typeof $scope.config.playlistIndex == 'undefined')
-                $scope.config.playlistIndex = 0;
-
-            $scope.config.$save();
-
-            var ref = playlistRef.orderByChild("round")
-                .equalTo($scope.config.round);
-
-            var t = $firebaseArray(ref);
-
-            t.$loaded().then(function (data) {
-                if(typeof data[$scope.config.playlistIndex] == 'undefined'){
-                    $scope.config.playlistIndex = 0;
-                }
-
-                var loadSong = function(){
-                    Song(data[$scope.config.playlistIndex].songId).$loaded().then(function(data){
-                        $scope.song = data;
-                        $scope.song.lyrics = $sce.trustAsHtml($scope.song.lyrics);
-                    });
-                };
+        $scope.config.$loaded().then(function (config) {
 
 
-                $scope.nextSong= function(){
-                    if(typeof data[$scope.config.playlistIndex+1] != 'undefined'){
-                        $scope.config.playlistIndex++;
-                        $scope.config.$save();
-                        loadSong();
-                    }
-                };
-
-                $scope.prevSong= function(){
-                    var tmp = $scope.config.playlistIndex-1;
-                    if(tmp>=0 && typeof data[tmp] != 'undefined'){
-                        $scope.config.playlistIndex--;
-                        $scope.config.$save();
-                        loadSong();
-                    }
-                }
+            playService.setConfig(config);
+            playService.getSong().then(function (song) {
+                $scope.song = song;
             });
         });
 
+        $scope.nextSong = function () {
+            playService.nextSong();
+            playService.getSong().then(function (song) {
+                $scope.song = song;
+            });
+        };
 
+        $scope.prevSong = function () {
+            playService.prevSong();
+            playService.getSong().then(function (song) {
+                $scope.song = song;
+            });
+        };
+
+        $scope.firstSong = function () {
+            playService.firstSong();
+        };
 
     }]);
 
@@ -346,44 +302,12 @@ app.factory("PlaylistFactory", ["$firebaseArray", 'fbURL',
 ]);
 
 
-///* use strict */
-//app.factory('songFactory', ['$firebaseObject', function ($firebaseObject) {
-//    // create a new service based on $firebaseObject
-//    var Song = $firebaseObject.$extend({
-//        // these methods exist on the prototype, so we can access the data using `this`
-//        //getFullName: function () {
-//        //    return this.name + " " + this.name;
-//        //}
-//    });
-//
-//    return function (songId) {
-//        var ref = firebase.child(songId);
-//        return new Song(ref);
-//    }
-//}
-//]);
-//app.factory("SongFactory", function ($firebaseObject) {
-//    return $firebaseObject.$extend({});
-//});
-
-//
-//app.factory("SongF", '$firebaseObject','fbURL', function ( $firebaseObject, fbURL) {
-//    return new Firebase(fbURL + "/songs/");
-//    //return function (songId) {
-//    //    return new $firebaseObject(ref.child(songId));
-//    //}
-//});
-
-
 app.factory("Song", ["$firebaseObject", 'fbURL',
     function ($firebaseObject, fbURL) {
-        // create a new service based on $firebaseObject
         var Song = $firebaseObject.$extend({});
 
         return function (songId) {
             var ref = new Firebase(fbURL + '/songs/').child(songId);
-
-            // create an instance of User (the new operator is required)
             return new Song(ref);
         }
     }
@@ -412,6 +336,87 @@ app.filter('rawHtml', ['$sce', function($sce){
         return $sce.trustAsHtml(val);
     };
 }]);
+
+/* use strict */
+app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$firebaseObject', '$q',
+    function ($filter, Song, fbURL, $firebaseArray, $firebaseObject, $q) {
+        var service = this;
+
+        var playlistRef = new Firebase(fbURL + 'playlist/');
+        var ref = playlistRef.orderByChild("position");
+
+
+        service.rounds = [1, 2, 3, 4, 5, 6, 7];
+        service.config = {};
+
+        service.setItems = function (data) {
+            service.items = data;
+        };
+        service.getItems = function () {
+            return service.items;
+        };
+
+        service.setConfig = function (config) {
+            service.config = config;
+        };
+
+        service.getSongsByRound = function (round) {
+            var deferred = $q.defer();
+            var fb = new Firebase(fbURL);
+
+            var norm = new Firebase.util.NormalizedCollection(
+                [fb.child('playlist/' + round).orderByChild('position'), "round"],
+                [fb.child('songs'), 'song', 'round.songId']
+            );
+
+            var ref = norm.select('round.songId','round.position', 'song.name').ref();
+            ref.once("value", function(snap) {
+                deferred.resolve(snap.val());
+            });
+
+            return deferred.promise;
+        };
+
+        service.savePosition = function (key, position) {
+            var item = $firebaseObject(playlistRef.child(key));
+            item.$loaded().then(function (data) {
+                data.position = position;
+                data.$save();
+            });
+        };
+
+        service.addSong = function (data, round) {
+            var ref = new Firebase(fbURL + 'playlist/' + round);
+            var list = $firebaseArray(ref);
+            list.$add({
+                songId: data.$id,
+                position: 9999,
+                round: round
+            }).then(function () {
+                service.repairPossition(round);
+            });
+        };
+
+        service.repairPossition = function (round) {
+            var counter = 0;
+            var ref = new Firebase(fbURL + 'playlist/' + round).orderByChild('position');
+            var list = $firebaseArray(ref);
+            list.$loaded().then(function (items) {
+                angular.forEach(items, function (value, index) {
+                    counter++;
+                    //list[index].position = counter;
+                    new Firebase(fbURL + 'playlist/').child(round).child(value.$id).update({'position': counter});
+
+
+                });
+
+                //list.$save();
+            })
+
+        };
+        return service;
+
+    }]);
 
 /* use strict */
 app.config(function ($routeProvider) {
@@ -445,78 +450,169 @@ app.config(function ($routeProvider) {
         })
 });
 
+///* use strict */
+//app.service('firebaseService', [function () {
+//    var service = this;
+//
+//    service.dateToYMD = function (date) {
+//        var d = date.getDate();
+//        var m = date.getMonth() + 1;
+//        var y = date.getFullYear();
+//        return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
+//    };
+//
+//    service.getDayRange = function (day) {
+//        var labels = [];
+//
+//        for (var i = 0; i < day; i++) {
+//            var dateObj = new Date();
+//            dateObj.setDate(dateObj.getDate() - i);
+//            labels.push(service.dateToYMD(dateObj));
+//        }
+//
+//        return labels;
+//    };
+//
+//    service.setDataWithDate = function (data) {
+//        angular.forEach(data, function (value) {
+//            var date = value.datetime.date;
+//            if (date !== undefined) {
+//                value.datetime.date = date.split(" ")[0];
+//            }
+//        });
+//    };
+//
+//    service.getMapValuesToDate = function (data, attributes) {
+//        var dataMapping = {};
+//
+//        angular.forEach(data, function (value) {
+//            var date = value.datetime.date;
+//            if (dataMapping[date] === undefined) {
+//                dataMapping[date] = {};
+//                angular.forEach(attributes, function (attribute) {
+//                    dataMapping[date][attribute] = value[attribute];
+//                });
+//            } else {
+//                angular.forEach(attributes, function (attribute) {
+//                    dataMapping[date][attribute] += value[attribute];
+//                });
+//            }
+//        });
+//
+//        return dataMapping;
+//    };
+//
+//    service.setValuesToChart = function (dataMapping, attributes, labels, data) {
+//        for (var i = 0; i < labels.length; i++) {
+//            if (typeof dataMapping[labels[i]] === 'undefined') {
+//                angular.forEach(attributes, function (attribute, key) {
+//                    data[key].push(0);
+//                });
+//            } else {
+//                angular.forEach(attributes, function (attribute, key) {
+//                    data[key].push(dataMapping[labels[i]][attribute]);
+//                });
+//            }
+//        }
+//    };
+//
+//    service.getDataForChart = function (data, attributes) {
+//        //set date to usable format
+//        service.setDataWithDate(data);
+//
+//        //map values to date
+//        return service.getMapValuesToDate(data, attributes);
+//    };
+//
+//}]);
+
 /* use strict */
-app.service('firebaseService', [function () {
-    var service = this;
+app.service('playService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$firebaseObject', '$q',
+    function ($filter, Song, fbURL, $firebaseArray, $firebaseObject, $q) {
+        var service = this;
+        var ref = new Firebase(fbURL + 'playlist/').orderByChild("position");
 
-    service.dateToYMD = function (date) {
-        var d = date.getDate();
-        var m = date.getMonth() + 1;
-        var y = date.getFullYear();
-        return '' + y + '-' + (m <= 9 ? '0' + m : m) + '-' + (d <= 9 ? '0' + d : d);
-    };
+        service.list = $firebaseObject(ref);
 
-    service.getDayRange = function (day) {
-        var labels = [];
+        service.config = {};
 
-        for (var i = 0; i < day; i++) {
-            var dateObj = new Date();
-            dateObj.setDate(dateObj.getDate() - i);
-            labels.push(service.dateToYMD(dateObj));
-        }
+        service.setConfig = function (config) {
+            service.config = config;
+        };
 
-        return labels;
-    };
-
-    service.setDataWithDate = function (data) {
-        angular.forEach(data, function (value) {
-            var date = value.datetime.date;
-            if (date !== undefined) {
-                value.datetime.date = date.split(" ")[0];
-            }
-        });
-    };
-
-    service.getMapValuesToDate = function (data, attributes) {
-        var dataMapping = {};
-
-        angular.forEach(data, function (value) {
-            var date = value.datetime.date;
-            if (dataMapping[date] === undefined) {
-                dataMapping[date] = {};
-                angular.forEach(attributes, function (attribute) {
-                    dataMapping[date][attribute] = value[attribute];
+        service.getSong = function () {
+            var round = service.config.round;
+            var position = service.config.position;
+            var deferredSong = $q.defer();
+            service.list.$loaded().then(function (list) {
+                angular.forEach(list[round], function (value, index) {
+                    if (value['position'] == position) {
+                        deferredSong.resolve(Song(value.songId));
+                    }
                 });
+            });
+
+            return deferredSong.promise;
+        };
+
+        service.isPosition = function (round, position) {
+            var result = false;
+            angular.forEach(service.list[round], function (value) {
+                if (value['position'] == position) {
+                    result = true;
+                }
+            });
+            return result;
+        };
+        service.nextSong = function () {
+            var round = service.config.round;
+            var position = service.config.position;
+
+            if (service.isPosition(round, position+1)) {
+                service.config.position++;
+                service.config.$save();
             } else {
-                angular.forEach(attributes, function (attribute) {
-                    dataMapping[date][attribute] += value[attribute];
-                });
+                if (service.isPosition(round+1,1)) {
+                    service.config.round++;
+                    service.config.position = 1;
+                    service.config.$save();
+                }
             }
-        });
+        };
 
-        return dataMapping;
-    };
+        service.prevSong = function () {
+            var round = service.config.round;
+            var position = service.config.position;
 
-    service.setValuesToChart = function (dataMapping, attributes, labels, data) {
-        for (var i = 0; i < labels.length; i++) {
-            if (typeof dataMapping[labels[i]] === 'undefined') {
-                angular.forEach(attributes, function (attribute, key) {
-                    data[key].push(0);
-                });
+            if (service.isPosition(round, position-1)) {
+                service.config.position--;
+                service.config.$save();
             } else {
-                angular.forEach(attributes, function (attribute, key) {
-                    data[key].push(dataMapping[labels[i]][attribute]);
-                });
+                var tmp = round - 1;
+                if (tmp < 1) {
+                    service.config.round = 1;
+                    service.config.position = 1;
+                } else {
+                    //check last index
+                    var lastIndex = Object.keys(service.list[tmp]).length;
+                    if(service.isPosition(tmp, lastIndex)){
+                        service.config.round = tmp;
+                        service.config.position = lastIndex;
+                    }
+
+                }
+
+                service.config.$save();
+
             }
-        }
-    };
 
-    service.getDataForChart = function (data, attributes) {
-        //set date to usable format
-        service.setDataWithDate(data);
+        };
 
-        //map values to date
-        return service.getMapValuesToDate(data, attributes);
-    };
+        service.firstSong = function () {
+            service.config.round = 1;
+            service.config.position = 1;
+            service.config.$save();
+        };
+        return service;
 
-}]);
+    }]);

@@ -4,12 +4,12 @@ var firebase = new Firebase('https://scorching-inferno-4935.firebaseio.com/');
 var app = angular.module('BandPlaylist',
     [
         'firebase',
-        'ngDraggable',
+        //'ngDraggable',
         'wysiwyg.module','colorpicker.module',
         'ngRoute',
         'ngFileUpload',
         'pascalprecht.translate',
-        'as.sortable'
+        'ui.sortable'
     ]);
 
 app.config(['$translateProvider', function ($translateProvider) {
@@ -118,10 +118,21 @@ app.controller('MainCtrl', [
         var songsRef = new Firebase(fbURL + 'songs/');
         var roundRef = new Firebase(fbURL + 'playlist/');
 
+        $(".navbar-fixed-top").fadeIn();
+
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
         $scope.showRound = false;
+        
 
         $scope.songs = $firebaseArray(songsRef);
+
+        $scope.songsAssocByKey = {};
+
+        $scope.songs.$loaded().then(function(results){
+            angular.forEach(results, function(value, index){
+                $scope.songsAssocByKey[value.$id] = value;
+            })
+        });
 
         $scope.addToPlaylist = function (data) {
             playlistService.addSong(data,$scope.activeRound);
@@ -129,8 +140,12 @@ app.controller('MainCtrl', [
         };
 
         $scope.repairPossition = function (round) {
-            playlistService.repairPossition(round);
-            $scope.loadPlaylist();
+            var counter = 0;
+            angular.forEach($scope.roundsongs, function(value, index){
+                counter++;
+                $scope.roundsongs[index]['position'] = counter;
+                $scope.roundsongs.$save(index);
+            });
         };
 
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
@@ -141,14 +156,13 @@ app.controller('MainCtrl', [
             $scope.activeRound = $routeParams.round;
 
             $scope.loadPlaylist = function(){
-                playlistService.getSongsByRound($scope.activeRound).then(function(list){
-                    $scope.roundsongs = list;
-                });
+                var roundQuery = roundRef.child($scope.activeRound).orderByChild('position');
+                $scope.roundsongs = $firebaseArray(roundQuery);
             };
 
             $scope.loadPlaylist();
-        }
 
+        }
 
         var query = songsRef.orderByChild("name").limitToLast(500);
         $scope.filteredsongs = $firebaseArray(query);
@@ -175,13 +189,11 @@ app.controller('MainCtrl', [
                 });
             }
         };
-
         $scope.sortableOptions = {
-            containment: '#sortable-container',
-            orderChanged: function (event) {
-                console.log(event);
-                $scope.repairPossition($scope.activeRound)
+            stop: function(e, ui) {
+                $scope.repairPossition()
             },
+            handle: '.ui-sortable-item-handle'
         };
 
     }]);
@@ -204,9 +216,10 @@ app.controller('PlayCtrl', [
         var configRef = new Firebase(fbURL + 'config/');
         $scope.config = $firebaseObject(configRef);
 
+        $(".navbar-fixed-top").fadeOut();
+        //console.log(nav);
+
         $scope.config.$loaded().then(function (config) {
-
-
             playService.setConfig(config);
             playService.getSong().then(function (song) {
                 $scope.song = song;
@@ -314,23 +327,6 @@ app.factory("Song", ["$firebaseObject", 'fbURL',
 ]);
 
 
-///* use strict */
-//app.factory('songsFactory', ['$firebaseObject', function ($firebaseObject) {
-//    // create a new service based on $firebaseObject
-//    var Songs = $firebaseArray.$extend({
-//        // these methods exist on the prototype, so we can access the data using `this`
-//        //getFullName: function () {
-//        //    return this.name + " " + this.name;
-//        //}
-//    });
-//
-//    return function () {
-//        var ref = firebase.child(songId);
-//        return new Songs(ref);
-//    }
-//}
-//]);
-
 app.filter('rawHtml', ['$sce', function($sce){
     return function(val) {
         return $sce.trustAsHtml(val);
@@ -358,6 +354,23 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
 
         service.setConfig = function (config) {
             service.config = config;
+        };
+
+        service.getSongsByRoundHmmm = function (round) {
+            var deferred = $q.defer();
+            var fb = new Firebase(fbURL);
+
+            var norm = new Firebase.util.NormalizedCollection(
+                [fb.child('playlist/' + round).orderByChild('position'), "round"],
+                [fb.child('songs'), 'song', 'round.songId']
+            );
+
+            var ref = norm.select('round.songId','round.position', 'song.name').ref();
+            ref.once("value", function(snap) {
+                deferred.resolve(snap.val());
+            });
+
+            return deferred.promise;
         };
 
         service.getSongsByRound = function (round) {
@@ -599,11 +612,9 @@ app.service('playService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$fire
                         service.config.round = tmp;
                         service.config.position = lastIndex;
                     }
-
                 }
 
                 service.config.$save();
-
             }
 
         };

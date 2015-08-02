@@ -21,6 +21,23 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
             service.config = config;
         };
 
+        service.getSongsByRoundHmmm = function (round) {
+            var deferred = $q.defer();
+            var fb = new Firebase(fbURL);
+
+            var norm = new Firebase.util.NormalizedCollection(
+                [fb.child('playlist/' + round).orderByChild('position'), "round"],
+                [fb.child('songs'), 'song', 'round.songId']
+            );
+
+            var ref = norm.select('round.songId','round.position', 'song.name').ref();
+            ref.once("value", function(snap) {
+                deferred.resolve(snap.val());
+            });
+
+            return deferred.promise;
+        };
+
         service.getSongsByRound = function (round) {
             var deferred = $q.defer();
             var fb = new Firebase(fbURL);

@@ -34,6 +34,7 @@ module.exports = function (grunt) {
             deps: {
                 src: [
                     'bower_components/jquery/dist/jquery.js',
+                    'bower_components/jquery-ui/jquery-ui.js',
                     'bower_components/angular/angular.min.js',
 
                     'bower_components/firebase/firebase-debug.js',
@@ -49,6 +50,7 @@ module.exports = function (grunt) {
                     'bower_components/angular-wysiwyg/dist/angular-wysiwyg.js',
                     'bower_components/bootstrap-autohidingnavbar/dist/jquery.bootstrap-autohidingnavbar.js',
                     'bower_components/ng-sortable/dist/ng-sortable.js',
+                    'bower_components/angular-ui-sortable/sortable.js',
 
 
                     'bower_components/ng-file-upload/ng-file-upload-all.js'

@@ -49,16 +49,16 @@
                         <th>{{'Song name'|translate}}</th>
                         <th></th>
                         </thead>
-                        <tbody as-sortable="sortableOptions" ng-model="roundsongs">
-                        <tr ng-repeat="(key,song) in roundsongs" as-sortable-item class="as-sortable-item">
+                        <tbody ui-sortable="sortableOptions" ng-model="roundsongs">
+                        <tr ng-repeat="song in roundsongs">
                             <td>{{song.position}}</td>
-                            <td>{{song.name}}</td>
+                            <td>{{songsAssocByKey[song.songId]['name']}}</td>
                             <td class="text-right">
 
-                                <button as-sortable-item-handle class="btn btn-sm btn-default as-sortable-item-handle">
+                                <span class="btn btn-sm btn-default ui-sortable-item-handle">
                                     <span class="glyphicon glyphicon-move"></span>
-                                </button>
-                                <button ng-click="deleteSongFromPlaylist(key)" class="btn btn-sm btn-danger">
+                                </span>
+                                <button ng-click="deleteSongFromPlaylist(song.$id)" class="btn btn-sm btn-danger">
                                     <span class="glyphicon glyphicon-remove"></span>
                                 </button>
                             </td>

@@ -14,10 +14,21 @@ app.controller('MainCtrl', [
         var songsRef = new Firebase(fbURL + 'songs/');
         var roundRef = new Firebase(fbURL + 'playlist/');
 
+        $(".navbar-fixed-top").fadeIn();
+
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
         $scope.showRound = false;
+        
 
         $scope.songs = $firebaseArray(songsRef);
+
+        $scope.songsAssocByKey = {};
+
+        $scope.songs.$loaded().then(function(results){
+            angular.forEach(results, function(value, index){
+                $scope.songsAssocByKey[value.$id] = value;
+            })
+        });
 
         $scope.addToPlaylist = function (data) {
             playlistService.addSong(data,$scope.activeRound);
@@ -25,8 +36,12 @@ app.controller('MainCtrl', [
         };
 
         $scope.repairPossition = function (round) {
-            playlistService.repairPossition(round);
-            $scope.loadPlaylist();
+            var counter = 0;
+            angular.forEach($scope.roundsongs, function(value, index){
+                counter++;
+                $scope.roundsongs[index]['position'] = counter;
+                $scope.roundsongs.$save(index);
+            });
         };
 
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
@@ -37,14 +52,13 @@ app.controller('MainCtrl', [
             $scope.activeRound = $routeParams.round;
 
             $scope.loadPlaylist = function(){
-                playlistService.getSongsByRound($scope.activeRound).then(function(list){
-                    $scope.roundsongs = list;
-                });
+                var roundQuery = roundRef.child($scope.activeRound).orderByChild('position');
+                $scope.roundsongs = $firebaseArray(roundQuery);
             };
 
             $scope.loadPlaylist();
-        }
 
+        }
 
         var query = songsRef.orderByChild("name").limitToLast(500);
         $scope.filteredsongs = $firebaseArray(query);
@@ -71,13 +85,11 @@ app.controller('MainCtrl', [
                 });
             }
         };
-
         $scope.sortableOptions = {
-            containment: '#sortable-container',
-            orderChanged: function (event) {
-                console.log(event);
-                $scope.repairPossition($scope.activeRound)
+            stop: function(e, ui) {
+                $scope.repairPossition()
             },
+            handle: '.ui-sortable-item-handle'
         };
 
     }]);

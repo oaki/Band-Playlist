@@ -16,9 +16,10 @@ app.controller('PlayCtrl', [
         var configRef = new Firebase(fbURL + 'config/');
         $scope.config = $firebaseObject(configRef);
 
+        $(".navbar-fixed-top").fadeOut();
+        //console.log(nav);
+
         $scope.config.$loaded().then(function (config) {
-
-
             playService.setConfig(config);
             playService.getSong().then(function (song) {
                 $scope.song = song;

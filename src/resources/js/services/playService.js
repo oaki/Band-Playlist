@@ -71,11 +71,9 @@ app.service('playService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$fire
                         service.config.round = tmp;
                         service.config.position = lastIndex;
                     }
-
                 }
 
                 service.config.$save();
-
             }
 
         };

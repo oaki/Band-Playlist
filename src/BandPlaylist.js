@@ -219,10 +219,10 @@ app.controller('PlayCtrl', [
 
         $(".navbar-fixed-top").fadeOut();
         $('body').animate({'padding-top':'10px'});
-        //console.log(nav);
 
-        $scope.config.$loaded().then(function (config) {
-            playService.setConfig(config);
+        playService.setConfig($scope.config);
+
+        $scope.config.$watch(function(){
             playService.getSong().then(function (song) {
                 $scope.song = song;
             });
@@ -230,16 +230,10 @@ app.controller('PlayCtrl', [
 
         $scope.nextSong = function () {
             playService.nextSong();
-            playService.getSong().then(function (song) {
-                $scope.song = song;
-            });
         };
 
         $scope.prevSong = function () {
             playService.prevSong();
-            playService.getSong().then(function (song) {
-                $scope.song = song;
-            });
         };
 
         $scope.firstSong = function () {

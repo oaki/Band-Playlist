@@ -51,6 +51,7 @@ module.exports = function (grunt) {
                     'bower_components/bootstrap-autohidingnavbar/dist/jquery.bootstrap-autohidingnavbar.js',
                     'bower_components/ng-sortable/dist/ng-sortable.js',
                     'bower_components/angular-ui-sortable/sortable.js',
+                    'bower_components/jqueryui-touch-punch/jquery.ui.touch-punch.js',
 
 
                     'bower_components/ng-file-upload/ng-file-upload-all.js'

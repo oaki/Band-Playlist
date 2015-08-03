@@ -17,6 +17,7 @@ app.controller('PlayCtrl', [
         $scope.config = $firebaseObject(configRef);
 
         $(".navbar-fixed-top").fadeOut();
+        $('body').animate({'padding-top':'10px'});
         //console.log(nav);
 
         $scope.config.$loaded().then(function (config) {

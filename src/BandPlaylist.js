@@ -119,6 +119,7 @@ app.controller('MainCtrl', [
         var roundRef = new Firebase(fbURL + 'playlist/');
 
         $(".navbar-fixed-top").fadeIn();
+        $('body').animate({'padding-top':'50px'});
 
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
         $scope.showRound = false;
@@ -217,6 +218,7 @@ app.controller('PlayCtrl', [
         $scope.config = $firebaseObject(configRef);
 
         $(".navbar-fixed-top").fadeOut();
+        $('body').animate({'padding-top':'10px'});
         //console.log(nav);
 
         $scope.config.$loaded().then(function (config) {

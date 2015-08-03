@@ -15,6 +15,7 @@ app.controller('MainCtrl', [
         var roundRef = new Firebase(fbURL + 'playlist/');
 
         $(".navbar-fixed-top").fadeIn();
+        $('body').animate({'padding-top':'50px'});
 
         $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
         $scope.showRound = false;

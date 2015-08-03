@@ -2048,6 +2048,7 @@ body {
 }
 .lyrics {
   font-family: "Courier New";
+  font-size: 1.6em;
 }
 [ng-drop] {
   background: rgba(0, 255, 0, 0.5);

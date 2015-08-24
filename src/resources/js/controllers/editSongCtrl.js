@@ -6,13 +6,14 @@ app.controller('EditSongCtrl', [
     '$location',
     '$routeParams',
     'fbURL',
-    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL) {
+    'authService',
+    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, authService) {
 
-        //console.log($routeParams.id);
-        //$scope.songs = songsFactory;
+        if (!authService.isLoggedIn()) {
+            $location.path('/login');
+        }
+
         var songsRef = new Firebase(fbURL + 'songs/' + $routeParams.id);
-        // download the data from a Firebase reference into a (pseudo read-only) array
-        // all server changes are applied in realtime
 
         $scope.song = $firebaseObject(songsRef);
 

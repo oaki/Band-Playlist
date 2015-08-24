@@ -6,53 +6,57 @@ app.controller('MainCtrl', [
     '$location',
     '$routeParams',
     'fbURL',
+    'rounds',
     'Song',
     '$filter',
     'playlistService',
+    'authService',
 
-    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, Song, $filter, playlistService) {
+    function ($scope, $firebaseArray, $firebaseObject, $location,
+              $routeParams, fbURL, rounds, Song, $filter, playlistService, authService) {
+
+        if (!authService.isLoggedIn()) {
+            $location.path('/play');
+        }
+
         var songsRef = new Firebase(fbURL + 'songs/');
         var roundRef = new Firebase(fbURL + 'playlist/');
 
         $(".navbar-fixed-top").fadeIn();
-        $('body').animate({'padding-top':'50px'});
+        $('body').animate({'padding-top': '50px'});
 
-        $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
+        $scope.rounds = rounds;
         $scope.showRound = false;
-        
 
         $scope.songs = $firebaseArray(songsRef);
 
         $scope.songsAssocByKey = {};
 
-        $scope.songs.$loaded().then(function(results){
-            angular.forEach(results, function(value, index){
+        $scope.songs.$loaded().then(function (results) {
+            angular.forEach(results, function (value, index) {
                 $scope.songsAssocByKey[value.$id] = value;
             })
         });
 
         $scope.addToPlaylist = function (data) {
-            playlistService.addSong(data,$scope.activeRound);
+            playlistService.addSong(data, $scope.activeRound);
             $scope.loadPlaylist();
         };
 
         $scope.repairPossition = function (round) {
             var counter = 0;
-            angular.forEach($scope.roundsongs, function(value, index){
+            angular.forEach($scope.roundsongs, function (value, index) {
                 counter++;
                 $scope.roundsongs[index]['position'] = counter;
                 $scope.roundsongs.$save(index);
             });
         };
 
-        $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
-        $scope.showRound = false;
-
         if (typeof $routeParams.round !== 'undefined') {
             $scope.showRound = true;
             $scope.activeRound = $routeParams.round;
 
-            $scope.loadPlaylist = function(){
+            $scope.loadPlaylist = function () {
                 var roundQuery = roundRef.child($scope.activeRound).orderByChild('position');
                 $scope.roundsongs = $firebaseArray(roundQuery);
             };
@@ -87,7 +91,7 @@ app.controller('MainCtrl', [
             }
         };
         $scope.sortableOptions = {
-            stop: function(e, ui) {
+            stop: function (e, ui) {
                 $scope.repairPossition()
             },
             handle: '.ui-sortable-item-handle'

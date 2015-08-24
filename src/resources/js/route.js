@@ -25,6 +25,18 @@ app.config(function ($routeProvider) {
             templateUrl: 'partials/editSong.html',
             controller: "EditSongCtrl"
         })
+        .when('/addUser', {
+            templateUrl: 'partials/addUser.html',
+            controller: "AddUserCtrl"
+        })
+        .when('/login', {
+            templateUrl: 'partials/login.html',
+            controller: "LoginCtrl"
+        })
+        .when('/logout', {
+            template: '<h1>Logout</h1>',
+            controller: "LogoutCtrl"
+        })
         .otherwise({
             template: '<h1>404</h1>'
         })

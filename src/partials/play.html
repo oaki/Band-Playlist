@@ -1,22 +1,23 @@
-<div class="btn-group pull-right" role="group">
-    <a href="#/round1" class="btn btn-lg btn-danger">
-        <span class="glyphicon glyphicon-stop"></span>
+<div ng-show="isLoggedIn" class="btn-group pull-right" role="group">
+
+        <a href="#/round1" class="btn btn-lg btn-danger">
+            <span class="glyphicon glyphicon-stop"></span>
+        </a>
+        <button type="submit" ng-click="firstSong()" class="btn btn-lg btn-default ">
+            <span class="glyphicon glyphicon-step-backward"></span>
+        </button>
+        <button type="submit" ng-click="prevSong()" class="btn btn-lg btn-default ">
+            <span class="glyphicon glyphicon-backward"></span>
+        </button>
+
+        <button type="submit" ng-click="nextSong()" class="btn btn-lg btn-default">
+            <span class="glyphicon glyphicon-forward"></span>
+        </button>
+</div>
+<div ng-hide="isLoggedIn" class="btn-group pull-right">
+    <a href="#/login" class="btn btn-default">
+        <span class="glyphicon glyphicon-user"> {{'Login'|translate}}</span>
     </a>
-    <button type="submit" ng-click="firstSong()" class="btn btn-lg btn-default ">
-        <span class="glyphicon glyphicon-step-backward"></span>
-    </button>
-    <button type="submit" ng-click="prevSong()" class="btn btn-lg btn-default ">
-        <span class="glyphicon glyphicon-backward"></span>
-    </button>
-
-    <button type="submit" ng-click="nextSong()" class="btn btn-lg btn-default">
-        <span class="glyphicon glyphicon-forward"></span>
-    </button>
-    <!--<button type="submit" ng-click="lastSong()" class="btn btn-lg btn-default">-->
-        <!--<span class="glyphicon glyphicon-step-forward"></span>-->
-    <!--</button>-->
-
-
 </div>
 
 <p>{{'Round'|translate}}: {{config.round}}, Song #: {{config.position}}</p>

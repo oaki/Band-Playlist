@@ -1,0 +1,14 @@
+<h1>{{'Login'|translate}}</h1>
+<form>
+    <div class="form-group">
+        <label for="email">{{'Name'|translate}}</label>
+        <input ng-model="email" id="email" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label for="password">{{'Password'|translate}}</label>
+        <input type="password" ng-model="password" id="password" class="form-control">
+    </div>
+
+    <button type="submit" ng-click="login()" class="btn btn-success"><span class="glyphicon"></span> {{'Login'|translate}}</button>
+</form>

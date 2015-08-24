@@ -1,13 +1,12 @@
 /* use strict */
-app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$firebaseObject', '$q',
-    function ($filter, Song, fbURL, $firebaseArray, $firebaseObject, $q) {
+app.service('playlistService', ['$filter', 'Song', 'fbURL', 'rounds', '$firebaseArray', '$firebaseObject', '$q',
+    function ($filter, Song, fbURL, rounds, $firebaseArray, $firebaseObject, $q) {
         var service = this;
 
         var playlistRef = new Firebase(fbURL + 'playlist/');
         var ref = playlistRef.orderByChild("position");
 
-
-        service.rounds = [1, 2, 3, 4, 5, 6, 7];
+        service.rounds = rounds;
         service.config = {};
 
         service.setItems = function (data) {
@@ -30,8 +29,8 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
                 [fb.child('songs'), 'song', 'round.songId']
             );
 
-            var ref = norm.select('round.songId','round.position', 'song.name').ref();
-            ref.once("value", function(snap) {
+            var ref = norm.select('round.songId', 'round.position', 'song.name').ref();
+            ref.once("value", function (snap) {
                 deferred.resolve(snap.val());
             });
 
@@ -47,8 +46,8 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
                 [fb.child('songs'), 'song', 'round.songId']
             );
 
-            var ref = norm.select('round.songId','round.position', 'song.name').ref();
-            ref.once("value", function(snap) {
+            var ref = norm.select('round.songId', 'round.position', 'song.name').ref();
+            ref.once("value", function (snap) {
                 deferred.resolve(snap.val());
             });
 
@@ -82,13 +81,8 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
             list.$loaded().then(function (items) {
                 angular.forEach(items, function (value, index) {
                     counter++;
-                    //list[index].position = counter;
                     new Firebase(fbURL + 'playlist/').child(round).child(value.$id).update({'position': counter});
-
-
                 });
-
-                //list.$save();
             })
 
         };

@@ -1,5 +1,4 @@
 /* use strict */
-var firebase = new Firebase('https://scorching-inferno-4935.firebaseio.com/');
 
 var app = angular.module('BandPlaylist',
     [
@@ -25,6 +24,7 @@ app.config(['$translateProvider', function ($translateProvider) {
 }]);
 
 app.value('fbURL', 'https://scorching-inferno-4935.firebaseio.com/');
+app.value('rounds', [1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 /* use strict */
 app.controller('AddSongCtrl', [
@@ -32,11 +32,14 @@ app.controller('AddSongCtrl', [
     '$firebaseArray',
     '$location',
     'fbURL',
-    function ($scope, $firebaseArray, $location, fbURL) {
-        //$scope.songs = songsFactory;
+    'authService',
+    function ($scope, $firebaseArray, $location, fbURL, authService) {
+
+        if (!authService.isLoggedIn()) {
+            $location.path('/login');
+        }
+
         var songsRef = new Firebase(fbURL + 'songs/');
-        // download the data from a Firebase reference into a (pseudo read-only) array
-        // all server changes are applied in realtime
 
         $scope.songs = $firebaseArray(songsRef);
 
@@ -64,6 +67,26 @@ app.controller('AddSongCtrl', [
     }]);
 
 /* use strict */
+app.controller('AddUserCtrl', [
+    '$scope',
+    '$firebaseArray',
+    '$location',
+    'fbURL',
+    function ($scope, $firebaseArray, $location, fbURL) {
+        var ref = new Firebase(fbURL);
+        ref.createUser({
+            email    : "pavolbincik@gmail.com",
+            password : "palosralo"
+        }, function(error, userData) {
+            if (error) {
+                console.log("Error creating user:", error);
+            } else {
+                console.log("Successfully created user account with uid:", userData.uid);
+            }
+        });
+    }]);
+
+/* use strict */
 app.controller('EditSongCtrl', [
     '$scope',
     '$firebaseArray',
@@ -71,13 +94,14 @@ app.controller('EditSongCtrl', [
     '$location',
     '$routeParams',
     'fbURL',
-    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL) {
+    'authService',
+    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, authService) {
 
-        //console.log($routeParams.id);
-        //$scope.songs = songsFactory;
+        if (!authService.isLoggedIn()) {
+            $location.path('/login');
+        }
+
         var songsRef = new Firebase(fbURL + 'songs/' + $routeParams.id);
-        // download the data from a Firebase reference into a (pseudo read-only) array
-        // all server changes are applied in realtime
 
         $scope.song = $firebaseObject(songsRef);
 
@@ -103,6 +127,33 @@ app.controller('EditSongCtrl', [
     }]);
 
 /* use strict */
+app.controller('LoginCtrl', [
+    '$scope','$location','authService',
+
+    function ($scope, $location, authService) {
+
+        $scope.login = function () {
+
+            authService.login($scope.email,$scope.password).then(function(result){
+                if (result) {
+                    $location.path('/');
+                }
+            });
+        };
+
+    }]);
+
+/* use strict */
+app.controller('LogoutCtrl', [
+    '$scope', 'authService', '$location',
+
+    function ($scope, authService, $location) {
+        authService.logout();
+        $location.path('/');
+
+    }]);
+
+/* use strict */
 app.controller('MainCtrl', [
     '$scope',
     '$firebaseArray',
@@ -110,53 +161,57 @@ app.controller('MainCtrl', [
     '$location',
     '$routeParams',
     'fbURL',
+    'rounds',
     'Song',
     '$filter',
     'playlistService',
+    'authService',
 
-    function ($scope, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, Song, $filter, playlistService) {
+    function ($scope, $firebaseArray, $firebaseObject, $location,
+              $routeParams, fbURL, rounds, Song, $filter, playlistService, authService) {
+
+        if (!authService.isLoggedIn()) {
+            $location.path('/play');
+        }
+
         var songsRef = new Firebase(fbURL + 'songs/');
         var roundRef = new Firebase(fbURL + 'playlist/');
 
         $(".navbar-fixed-top").fadeIn();
-        $('body').animate({'padding-top':'50px'});
+        $('body').animate({'padding-top': '50px'});
 
-        $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
+        $scope.rounds = rounds;
         $scope.showRound = false;
-        
 
         $scope.songs = $firebaseArray(songsRef);
 
         $scope.songsAssocByKey = {};
 
-        $scope.songs.$loaded().then(function(results){
-            angular.forEach(results, function(value, index){
+        $scope.songs.$loaded().then(function (results) {
+            angular.forEach(results, function (value, index) {
                 $scope.songsAssocByKey[value.$id] = value;
             })
         });
 
         $scope.addToPlaylist = function (data) {
-            playlistService.addSong(data,$scope.activeRound);
+            playlistService.addSong(data, $scope.activeRound);
             $scope.loadPlaylist();
         };
 
         $scope.repairPossition = function (round) {
             var counter = 0;
-            angular.forEach($scope.roundsongs, function(value, index){
+            angular.forEach($scope.roundsongs, function (value, index) {
                 counter++;
                 $scope.roundsongs[index]['position'] = counter;
                 $scope.roundsongs.$save(index);
             });
         };
 
-        $scope.rounds = [1, 2, 3, 4, 5, 6, 7];
-        $scope.showRound = false;
-
         if (typeof $routeParams.round !== 'undefined') {
             $scope.showRound = true;
             $scope.activeRound = $routeParams.round;
 
-            $scope.loadPlaylist = function(){
+            $scope.loadPlaylist = function () {
                 var roundQuery = roundRef.child($scope.activeRound).orderByChild('position');
                 $scope.roundsongs = $firebaseArray(roundQuery);
             };
@@ -191,7 +246,7 @@ app.controller('MainCtrl', [
             }
         };
         $scope.sortableOptions = {
-            stop: function(e, ui) {
+            stop: function (e, ui) {
                 $scope.repairPossition()
             },
             handle: '.ui-sortable-item-handle'
@@ -211,11 +266,15 @@ app.controller('PlayCtrl', [
     '$sce',
     'playlistService',
     'playService',
-    function ($scope, Song, $firebaseArray, $firebaseObject, $location, $routeParams, fbURL, $sce, playlistService, playService) {
+    'authService',
+    function ($scope, Song, $firebaseArray, $firebaseObject, $location,
+              $routeParams, fbURL, $sce, playlistService, playService, authService) {
 
 
         var configRef = new Firebase(fbURL + 'config/');
         $scope.config = $firebaseObject(configRef);
+        $scope.isLoggedIn = authService.isLoggedIn();
+
 
         $(".navbar-fixed-top").fadeOut();
         $('body').animate({'padding-top':'10px'});
@@ -240,64 +299,8 @@ app.controller('PlayCtrl', [
             playService.firstSong();
         };
 
-    }]);
 
-///* use strict */
-//app.factory('dataFactory', ['$firebaseObject', function ($firebaseObject) {
-//
-//    return $firebaseObject.$extend({
-//        /**
-//         * Called each time there is an update from the server
-//         * to update our Book data
-//         */
-//        $$updated: function (snap) {
-//            // call the super
-//            var changed = $firebaseObject.prototype
-//                .$$updated.apply(this, arguments);
-//            // manipulate the date
-//            if( changed ) {
-//                this.date = new Date(this.date||0);
-//            }
-//            // inform the sync manager that it changed
-//            return changed;
-//        },
-//
-//        /**
-//         * Used when our book is saved back to the server
-//         * to convert our dates back to JSON
-//         */
-//        toJSON: function() {
-//            return angular.extend({}, this, {
-//                // revert Date objects to json data
-//                date: this.date? this.date.getTime() : null
-//            });
-//        }});
-//        //var dataFactory = {
-//        //    'urlBase':'http://dogdiary.bincik.sk/server/api/'
-//        //};
-//        //
-//        //dataFactory.getAll = function () {
-//        //    return $http.get(this.urlBase);
-//        //};
-//        //
-//        //dataFactory.get = function (id) {
-//        //    return $http.get(this.urlBase + '/' + id);
-//        //};
-//        //
-//        //dataFactory.insert = function (food) {
-//        //    return $http.post(this.urlBase, JSON.stringify(food));
-//        //};
-//        //
-//        //dataFactory.update = function (cust) {
-//        //    return $http.put(this.urlBase + '/' + cust.ID, cust)
-//        //};
-//        //
-//        //dataFactory.delete = function (id) {
-//        //    return $http.delete(this.urlBase + '/' + id);
-//        //};
-//        //
-//        //return dataFactory;
-//    }]);
+    }]);
 
 app.factory("PlaylistFactory", ["$firebaseArray", 'fbURL',
     function ($firebaseArray, fbURL) {
@@ -330,15 +333,14 @@ app.filter('rawHtml', ['$sce', function($sce){
 }]);
 
 /* use strict */
-app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$firebaseObject', '$q',
-    function ($filter, Song, fbURL, $firebaseArray, $firebaseObject, $q) {
+app.service('playlistService', ['$filter', 'Song', 'fbURL', 'rounds', '$firebaseArray', '$firebaseObject', '$q',
+    function ($filter, Song, fbURL, rounds, $firebaseArray, $firebaseObject, $q) {
         var service = this;
 
         var playlistRef = new Firebase(fbURL + 'playlist/');
         var ref = playlistRef.orderByChild("position");
 
-
-        service.rounds = [1, 2, 3, 4, 5, 6, 7];
+        service.rounds = rounds;
         service.config = {};
 
         service.setItems = function (data) {
@@ -361,8 +363,8 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
                 [fb.child('songs'), 'song', 'round.songId']
             );
 
-            var ref = norm.select('round.songId','round.position', 'song.name').ref();
-            ref.once("value", function(snap) {
+            var ref = norm.select('round.songId', 'round.position', 'song.name').ref();
+            ref.once("value", function (snap) {
                 deferred.resolve(snap.val());
             });
 
@@ -378,8 +380,8 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
                 [fb.child('songs'), 'song', 'round.songId']
             );
 
-            var ref = norm.select('round.songId','round.position', 'song.name').ref();
-            ref.once("value", function(snap) {
+            var ref = norm.select('round.songId', 'round.position', 'song.name').ref();
+            ref.once("value", function (snap) {
                 deferred.resolve(snap.val());
             });
 
@@ -413,13 +415,8 @@ app.service('playlistService', ['$filter', 'Song', 'fbURL', '$firebaseArray', '$
             list.$loaded().then(function (items) {
                 angular.forEach(items, function (value, index) {
                     counter++;
-                    //list[index].position = counter;
                     new Firebase(fbURL + 'playlist/').child(round).child(value.$id).update({'position': counter});
-
-
                 });
-
-                //list.$save();
             })
 
         };
@@ -454,10 +451,55 @@ app.config(function ($routeProvider) {
             templateUrl: 'partials/editSong.html',
             controller: "EditSongCtrl"
         })
+        .when('/addUser', {
+            templateUrl: 'partials/addUser.html',
+            controller: "AddUserCtrl"
+        })
+        .when('/login', {
+            templateUrl: 'partials/login.html',
+            controller: "LoginCtrl"
+        })
+        .when('/logout', {
+            template: '<h1>Logout</h1>',
+            controller: "LogoutCtrl"
+        })
         .otherwise({
             template: '<h1>404</h1>'
         })
 });
+
+/* use strict */
+app.service('authService', ['fbURL', '$q',
+    function (fbURL, $q) {
+        var service = this;
+        var ref = new Firebase(fbURL);
+        service.isLoggedIn = function () {
+            return (ref.getAuth()) ? true : false;
+        };
+
+        var deferredAuth = $q.defer();
+        service.login = function (email, password) {
+            ref.authWithPassword({
+                email: email,
+                password: password
+            }, function (error, authData) {
+                if (error) {
+                    alert("Login Failed!", error);
+                    deferredAuth.resolve(false);
+                } else {
+                    deferredAuth.resolve(authData);
+                }
+            });
+
+            return deferredAuth.promise;
+        };
+        service.logout = function () {
+            ref.unauth();
+        };
+
+        return service;
+
+    }]);
 
 ///* use strict */
 //app.service('firebaseService', [function () {

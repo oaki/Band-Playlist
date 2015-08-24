@@ -1,5 +1,4 @@
 /* use strict */
-var firebase = new Firebase('https://scorching-inferno-4935.firebaseio.com/');
 
 var app = angular.module('BandPlaylist',
     [
